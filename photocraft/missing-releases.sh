@@ -15,6 +15,8 @@ gh release list --repo storytold/photocraft --exclude-drafts --exclude-pre-relea
   | while read -r upstream; do
       # Older than min-version: sorts before it.
       [ "$(printf '%s\n%s\n' "$min_version" "$upstream" | sort -V | head -n 1)" = "$min_version" ] || continue
-      grep -qxF "photocraft-v$(./package-version.sh "$upstream")" <<< "$released" || echo "$upstream"
+      # Its own line, so a bad REVISION fails the script instead of matching no tag.
+      version="$(./package-version.sh "$upstream")"
+      grep -qxF "photocraft-v$version" <<< "$released" || echo "$upstream"
     done \
   | jq -Rnc '[inputs]'
