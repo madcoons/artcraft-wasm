@@ -44,20 +44,7 @@ jobs:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: photocraft-package
+          path: photocraft
       - env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
-        run: |
-          file="$(ls *.tgz)"
-          upstream="$(sed -n 's/^photocraft-engine = .*tag = "\(v[^"]*\)".*/\1/p' photocraft/Cargo.toml)"
-          url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/${file}"
-          {
-            echo "The PhotoCraft engine ${upstream} compiled to WebAssembly."
-            echo
-            echo "Install it in package.json:"
-            echo
-            echo '```json'
-            echo "\"@madcoons/photocraft-wasm\": \"${url}\""
-            echo '```'
-          } > notes.md
-          gh release create "$TAG" "$file" --title "$TAG" --notes-file notes.md
+        run: photocraft/release.sh "${{ github.ref_name }}"

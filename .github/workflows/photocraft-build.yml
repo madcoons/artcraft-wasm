@@ -22,6 +22,7 @@ jobs:
             ~/.cargo/git
             photocraft/target
           key: photocraft-cargo-${{ hashFiles('photocraft/rust-toolchain.toml', 'photocraft/Cargo.lock') }}
+          restore-keys: photocraft-cargo-
       # rustup is on the runner; rust-toolchain.toml makes it install the pinned compiler and target.
       - run: photocraft/build.sh
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

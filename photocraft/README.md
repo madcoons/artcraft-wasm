@@ -84,14 +84,23 @@ photocraft/build.sh   # writes photocraft/pkg/ and photocraft/madcoons-photocraf
 
 ## Releasing
 
-1. Set `version` in `photocraft/Cargo.toml`. For a new PhotoCraft version, also change both `tag`s and run
-   `cargo update -p photocraft-engine` in `photocraft/`.
-2. Merge to `main`.
-3. Push the tag: `git tag photocraft-v0.11.101 && git push origin photocraft-v0.11.101`.
+**New PhotoCraft versions release themselves.** Every day `photocraft-update.yml` looks for an upstream stable
+release newer than the packaged one and at least 24 hours old. It moves the package to the newest such release
+(`photocraft/bump.sh`), builds it, commits to `main`, tags `photocraft-v<version>` and creates the release.
+Upstream releases often, so versions in between are skipped. If the build fails against a new release, nothing
+is published and the next day's run tries again; fix the code and it goes out. Run it by hand from the Actions
+tab to check now.
 
-`photocraft-release.yml` checks that the tag matches `Cargo.toml`, builds the package and creates the GitHub
-release with the `.tgz` attached. Turn on immutable releases in the repository settings, so a published file
-can't be replaced under a lockfile that pins its checksum.
+**A packaging fix** of the current PhotoCraft version, as the next revision:
+
+1. Set `version` in `photocraft/Cargo.toml`, e.g. `0.11.101` to `0.11.102`, and merge to `main`.
+2. Push the tag: `git tag photocraft-v0.11.102 && git push origin photocraft-v0.11.102`.
+
+`photocraft-release.yml` checks that the tag matches `Cargo.toml`, builds the package and creates the release
+with the `.tgz` attached (`photocraft/release.sh`).
+
+Turn on immutable releases in the repository settings, so a published file can't be replaced under a lockfile
+that pins its checksum.
 
 ## License
 
