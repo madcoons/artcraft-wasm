@@ -1,32 +1,45 @@
 name: Build PhotoCraft
 
-# Builds and packs photocraft/. Called by ci.yml and photocraft-release.yml; uploads the .tgz as `photocraft-package`.
+# Builds and packs photocraft/, for one upstream PhotoCraft version when given (bump.sh on the checkout,
+# nothing committed) or as Cargo.toml has it. Called by ci.yml and photocraft-release.yml; uploads the
+# .tgz as photocraft-package-<version>-<revision> (photocraft-package without a version).
 
 on:
   workflow_call:
+    inputs:
+      photocraft-version:
+        description: "Upstream PhotoCraft version, e.g. 0.14.0 (empty: the one in Cargo.toml)"
+        type: string
+        default: ""
+      package-revision:
+        description: "Packaging revision 1-99: 0.14.0 revision 2 is package version 0.14.2"
+        type: string
+        default: "1"
 
 permissions:
   contents: read
 
 jobs:
   pack:
-    name: Build and pack
+    name: Build and pack ${{ inputs.photocraft-version }}
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # The engine is a long compile; reuse it while Cargo.lock and the toolchain stay the same.
+      - if: inputs.photocraft-version
+        run: photocraft/bump.sh "${{ inputs.photocraft-version }}" "${{ inputs.package-revision }}"
+      # The engine is a long compile; reuse it while the toolchain and PhotoCraft version stay the same.
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
             photocraft/target
-          key: photocraft-cargo-${{ hashFiles('photocraft/rust-toolchain.toml', 'photocraft/Cargo.lock') }}
+          key: photocraft-cargo-${{ hashFiles('photocraft/rust-toolchain.toml', 'photocraft/Cargo.toml', 'photocraft/Cargo.lock') }}
           restore-keys: photocraft-cargo-
       # rustup is on the runner; rust-toolchain.toml makes it install the pinned compiler and target.
       - run: photocraft/build.sh
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: photocraft-package
+          name: photocraft-package${{ inputs.photocraft-version && format('-{0}-{1}', inputs.photocraft-version, inputs.package-revision) || '' }}
           path: photocraft/*.tgz
           if-no-files-found: error

@@ -84,20 +84,18 @@ photocraft/build.sh   # writes photocraft/pkg/ and photocraft/madcoons-photocraf
 
 ## Releasing
 
-**New PhotoCraft versions release themselves.** Every day `photocraft-update.yml` looks for an upstream stable
-release newer than the packaged one and at least 24 hours old. It moves the package to the newest such release
-(`photocraft/bump.sh`), builds it, commits to `main`, tags `photocraft-v<version>` and creates the release.
-Upstream releases often, so versions in between are skipped. If the build fails against a new release, nothing
-is published and the next day's run tries again; fix the code and it goes out. Run it by hand from the Actions
-tab to check now.
+**Releases need no commits.** Every day `photocraft-release.yml` lists the upstream stable releases from 0.11.1
+on that are at least 24 hours old and have no `photocraft-v<version>` release here yet
+(`photocraft/missing-releases.sh`). For each, it checks out `main`, applies `photocraft/bump.sh <version>` to the
+checkout, builds, and creates the release with the `.tgz` attached; the tag is made at that `main` commit
+(`photocraft/release.sh`). `main` keeps whatever PhotoCraft version `Cargo.toml` names; that's only what CI and
+local builds use.
 
-**A packaging fix** of the current PhotoCraft version, as the next revision:
+If a version fails to build, it isn't released and the next day's run tries it again; fix the code on `main` and
+it goes out. Run the workflow by hand from the Actions tab to release now.
 
-1. Set `version` in `photocraft/Cargo.toml`, e.g. `0.11.101` to `0.11.102`, and merge to `main`.
-2. Push the tag: `git tag photocraft-v0.11.102 && git push origin photocraft-v0.11.102`.
-
-`photocraft-release.yml` checks that the tag matches `Cargo.toml`, builds the package and creates the release
-with the `.tgz` attached (`photocraft/release.sh`).
+**A packaging fix** of a version already released: fix it on `main`, then run "Release PhotoCraft" by hand with
+the upstream version and the next revision, e.g. `0.14.0` revision `2` releases `photocraft-v0.14.2`.
 
 Turn on immutable releases in the repository settings, so a published file can't be replaced under a lockfile
 that pins its checksum.
