@@ -1,6 +1,6 @@
 name: CI
 
-# Builds the package on every change. Publishing a release is release.yml.
+# Builds every package on every change. Publishing a release is photocraft-release.yml.
 
 on:
   push:
@@ -16,5 +16,5 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  build:
-    uses: ./.github/workflows/build.yml
+  photocraft:
+    uses: ./.github/workflows/photocraft-build.yml

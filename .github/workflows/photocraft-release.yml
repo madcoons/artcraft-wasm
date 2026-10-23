@@ -1,17 +1,17 @@
-name: Release
+name: Release PhotoCraft
 
-# Pushing tag v<version> builds the package and attaches the .tgz to a GitHub release of that tag.
-# The tag must match `version` in Cargo.toml.
+# Pushing tag photocraft-v<version> builds photocraft/ and attaches the .tgz to a GitHub release of that
+# tag. The tag must match `version` in photocraft/Cargo.toml.
 
 on:
   push:
-    tags: ["v*"]
+    tags: ["photocraft-v*"]
 
 permissions:
   contents: read
 
 concurrency:
-  group: release
+  group: release-photocraft
   cancel-in-progress: false
 
 jobs:
@@ -23,15 +23,15 @@ jobs:
       - env:
           TAG: ${{ github.ref_name }}
         run: |
-          version="$(sed -n 's/^version = "\(.*\)"$/\1/p' Cargo.toml | head -n 1)"
-          if [ "$TAG" != "v$version" ]; then
-            echo "::error::Tag $TAG doesn't match version $version in Cargo.toml."
+          version="$(sed -n 's/^version = "\(.*\)"$/\1/p' photocraft/Cargo.toml | head -n 1)"
+          if [ "$TAG" != "photocraft-v$version" ]; then
+            echo "::error::Tag $TAG doesn't match version $version in photocraft/Cargo.toml."
             exit 1
           fi
 
   build:
     needs: check
-    uses: ./.github/workflows/build.yml
+    uses: ./.github/workflows/photocraft-build.yml
 
   release:
     name: Create the release
@@ -43,13 +43,13 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: package
+          name: photocraft-package
       - env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
         run: |
           file="$(ls *.tgz)"
-          upstream="$(sed -n 's/^photocraft-engine = .*tag = "\(v[^"]*\)".*/\1/p' Cargo.toml)"
+          upstream="$(sed -n 's/^photocraft-engine = .*tag = "\(v[^"]*\)".*/\1/p' photocraft/Cargo.toml)"
           url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/${file}"
           {
             echo "The PhotoCraft engine ${upstream} compiled to WebAssembly."
