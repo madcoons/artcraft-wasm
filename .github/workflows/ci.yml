@@ -1,0 +1,20 @@
+name: CI
+
+# Builds every package on every change. Publishing a release is photocraft-release.yml.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  photocraft:
+    uses: ./.github/workflows/photocraft-build.yml

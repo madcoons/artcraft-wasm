@@ -1,0 +1,26 @@
+[package]
+name = "photocraft-wasm"
+description = "The PhotoCraft image engine compiled to WebAssembly: open a file, run engine commands, read the composite"
+# A placeholder: releases set it with bump.sh, from the upstream version and the packaging revision in
+# REVISION (package-version.sh). The photocraft tags below are what CI and local builds use.
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/madcoons/artcraft-wasm"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+photocraft-engine = { git = "https://github.com/storytold/photocraft", tag = "v0.11.1" }
+photocraft-compose = { git = "https://github.com/storytold/photocraft", tag = "v0.11.1" }
+serde_json = "1"
+js-sys = "0.3"
+wasm-bindgen = "0.2"
+
+[profile.release]
+# Speed over size: a render composites the whole document on one thread.
+opt-level = 3
+lto = "thin"
+codegen-units = 1
