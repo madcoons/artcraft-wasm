@@ -71,7 +71,9 @@ reads as empty.
 ## Versions
 
 A package version is the upstream PhotoCraft version with a two-digit packaging revision appended to the patch
-number: PhotoCraft 0.11.1 is `0.11.101`, and a packaging-only fix of it is `0.11.102`.
+number (`photocraft/package-version.sh`): at revision 1, PhotoCraft 0.11.1 is `0.11.101` and 0.14.0 is `0.14.1`.
+The revision is ours, not upstream's: it counts packagings of the same PhotoCraft code, and lives in
+`photocraft/REVISION` (1-99), the only place it's set.
 
 ## Building
 
@@ -79,8 +81,11 @@ You need [rustup](https://rustup.rs) and Node.js. `rust-toolchain.toml` picks th
 target.
 
 ```sh
-photocraft/build.sh   # writes photocraft/pkg/ and photocraft/madcoons-photocraft-wasm-<version>.tgz
+photocraft/build.sh   # writes photocraft/pkg/ and photocraft/madcoons-photocraft-wasm-0.0.0.tgz
 ```
+
+`Cargo.toml`'s `version` is a `0.0.0` placeholder, so a local build is never mistaken for a release. To build a
+release locally, run `photocraft/bump.sh 0.14.0` first (and don't commit what it changes).
 
 ## Releasing
 
@@ -92,10 +97,12 @@ checkout, builds, and creates the release with the `.tgz` attached; the tag is m
 local builds use.
 
 If a version fails to build, it isn't released and the next day's run tries it again; fix the code on `main` and
-it goes out. Run the workflow by hand from the Actions tab to release now.
+it goes out. Run the workflow by hand from the Actions tab to release now, optionally for one version without
+the 24-hour wait.
 
-**A packaging fix** of a version already released: fix it on `main`, then run "Release PhotoCraft" by hand with
-the upstream version and the next revision, e.g. `0.14.0` revision `2` releases `photocraft-v0.14.2`.
+**A packaging fix** (the wrapper, the build, the licence files): fix it on `main` and raise `photocraft/REVISION`
+in the same change. The next run releases every version from 0.11.1 again at the new revision, e.g. `0.14.0`
+at revision 2 as `photocraft-v0.14.2`, because none of them has a release at that revision yet.
 
 Turn on immutable releases in the repository settings, so a published file can't be replaced under a lockfile
 that pins its checksum.

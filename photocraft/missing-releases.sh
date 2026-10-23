@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Prints, as a JSON array oldest first, the upstream PhotoCraft versions to release: stable releases from
-# <min-version> on, at least <min-age-hours> old, whose package (revision 1) has no release here yet.
-# Needs GH_TOKEN.
+# <min-version> on, at least <min-age-hours> old, whose package (at the revision in REVISION) has no release
+# here yet. Needs GH_TOKEN.
 set -euo pipefail
 cd "$(dirname "$0")"
 

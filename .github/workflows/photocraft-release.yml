@@ -2,8 +2,9 @@ name: Release PhotoCraft
 
 # Every day: release each upstream PhotoCraft version that has no release here yet (stable releases from
 # MIN_VERSION on, at least MIN_AGE_HOURS old). Each one is built from main with photocraft/bump.sh applied
-# to the checkout, and its tag is made at that main commit: nothing is committed. Run it by hand to release
-# one version now, e.g. a packaging fix as revision 2 (0.14.0 -> 0.14.2).
+# to the checkout, and its tag is made at that main commit: nothing is committed. The packaging revision is
+# photocraft/REVISION; raising it releases every version again at the new revision. Run it by hand to
+# release one version now, without waiting.
 
 on:
   schedule:
@@ -14,10 +15,6 @@ on:
         description: "Upstream version to release now, e.g. 0.14.0 (empty: every missing release)"
         type: string
         default: ""
-      package-revision:
-        description: "Packaging revision 1-99, with a version: 0.14.0 revision 2 is package version 0.14.2"
-        type: string
-        default: "1"
 
 permissions:
   contents: read
@@ -37,25 +34,20 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       versions: ${{ steps.plan.outputs.versions }}
-      revision: ${{ steps.plan.outputs.revision }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - id: plan
         env:
           GH_TOKEN: ${{ github.token }}
           INPUT_VERSION: ${{ inputs.photocraft-version }}
-          INPUT_REVISION: ${{ inputs.package-revision }}
         run: |
           if [ -n "$INPUT_VERSION" ]; then
             versions="$(jq -cn --arg v "${INPUT_VERSION#v}" '[$v]')"
-            revision="${INPUT_REVISION:-1}"
           else
             versions="$(photocraft/missing-releases.sh "$MIN_VERSION" "$MIN_AGE_HOURS")"
-            revision=1
           fi
           echo "versions=$versions" >> "$GITHUB_OUTPUT"
-          echo "revision=$revision" >> "$GITHUB_OUTPUT"
-          echo "Releasing: $versions (revision $revision)" >> "$GITHUB_STEP_SUMMARY"
+          echo "Releasing: $versions (revision $(cat photocraft/REVISION))" >> "$GITHUB_STEP_SUMMARY"
 
   build:
     needs: plan
@@ -67,7 +59,6 @@ jobs:
     uses: ./.github/workflows/photocraft-build.yml
     with:
       photocraft-version: ${{ matrix.photocraft-version }}
-      package-revision: ${{ needs.plan.outputs.revision }}
 
   # Runs only when every version built; a version that failed is retried the next day.
   publish:
@@ -86,12 +77,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: photocraft-package-${{ matrix.photocraft-version }}-${{ needs.plan.outputs.revision }}
+          name: photocraft-package-${{ matrix.photocraft-version }}
           path: photocraft
       - env:
           GH_TOKEN: ${{ github.token }}
           UPSTREAM: ${{ matrix.photocraft-version }}
-          REVISION: ${{ needs.plan.outputs.revision }}
         run: |
-          tag="photocraft-v$(photocraft/package-version.sh "$UPSTREAM" "$REVISION")"
-          photocraft/release.sh "$tag" "$UPSTREAM" "$REVISION" "$GITHUB_SHA"
+          tag="photocraft-v$(photocraft/package-version.sh "$UPSTREAM")"
+          photocraft/release.sh "$tag" "$UPSTREAM" "$GITHUB_SHA"

@@ -1,10 +1,9 @@
 [package]
 name = "photocraft-wasm"
 description = "The PhotoCraft image engine compiled to WebAssembly: open a file, run engine commands, read the composite"
-# The PhotoCraft version that CI and local builds use. Releases don't change it: each one applies bump.sh
-# (photocraft-release.yml) to set the tags below and this version, the upstream version with a two-digit
-# packaging revision appended to the patch number (0.11.1 revision 1 is 0.11.101).
-version = "0.11.101"
+# A placeholder: releases set it with bump.sh, from the upstream version and the packaging revision in
+# REVISION (package-version.sh). The photocraft tags below are what CI and local builds use.
+version = "0.0.0"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/madcoons/artcraft-wasm"
